@@ -2,180 +2,183 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>lord | terminal</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lord | botlarimiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f4f4f4; color: #1a1a1a; overflow-x: hidden; margin:0; transition: background 2s ease; }
-        .mobile-container { min-height: 100vh; display: flex; flex-direction: column; }
-        
-        /* HAVA DURUMU ARKA PLANLARI */
-        .weather-sunny { background: linear-gradient(to bottom, #87CEEB, #E0F7FA); }
-        .weather-rainy { background: linear-gradient(to bottom, #607D8B, #B0BEC5); }
-        .weather-stormy { background: linear-gradient(to bottom, #37474F, #263238); color: #fff; }
+        /* KÜÇÜK HARF VE TEMEL STİLLER */
+        * { text-transform: lowercase; margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; }
 
-        /* YAĞMUR ANİMASYONU */
-        .rain-drop { position: absolute; background: rgba(255,255,255,0.4); width: 1px; height: 50px; top: -50px; animation: fall 0.5s linear infinite; }
-        @keyframes fall { to { transform: translateY(100vh); } }
+        /* ULTRA ANİMASYONLU ARKA PLAN KATMANLARI */
+        .weather-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            transition: opacity 2s ease-in-out;
+        }
 
-        /* ŞİMŞEK */
-        .lightning-flash { position: fixed; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 50; }
-        .flash-active { animation: flash-anim 0.2s ease-out; }
-        @keyframes flash-anim { 0% { opacity: 0; } 50% { opacity: 0.8; } 100% { opacity: 0; } }
+        /* GÜNEŞ: PARLAYAN VE HAREKET EDEN IŞIKLAR */
+        .sunny-layer {
+            background: radial-gradient(circle at 50% -20%, #ff9d00, #000 60%);
+            animation: pulse-sun 8s infinite alternate;
+        }
+        @keyframes pulse-sun { 0% { opacity: 0.4; } 100% { opacity: 0.8; } }
 
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-        .stormy .glass { background: rgba(0, 0, 0, 0.4); border-color: rgba(255,255,255,0.1); color: white; }
+        /* YAĞMUR: AKAN ÇİZGİLER */
+        .rain-layer { background: #0a0a0a; display: none; }
+        .drop {
+            position: absolute;
+            background: linear-gradient(transparent, #fff);
+            width: 1px;
+            height: 80px;
+            top: -100px;
+            animation: fall linear infinite;
+        }
+        @keyframes fall { to { transform: translateY(110vh); } }
 
-        input { background: transparent !important; border-bottom: 2px solid #ddd; transition: 0.3s; }
-        .stormy input { border-color: rgba(255,255,255,0.2); color: white; }
-        
-        .loader-line { height: 3px; width: 0; background: #2196F3; position: fixed; top: 0; left: 0; transition: width 0.4s; z-index: 100; }
-        .stormy .loader-line { background: #fff; box-shadow: 0 0 10px #fff; }
+        /* FIRTINA: BULUT VE ŞİMŞEK */
+        .storm-layer { background: #050505; display: none; }
+        .lightning {
+            position: fixed; inset: 0; background: #fff; opacity: 0; z-index: 50; pointer-events: none;
+        }
+        .flash { animation: flash-anim 0.4s ease-out; }
+        @keyframes flash-anim { 0% { opacity: 0; } 10% { opacity: 0.5; } 100% { opacity: 0; } }
 
-        /* MOBİL MENÜ */
-        .side-menu { fixed; top:0; left:0; height:100%; width: 280px; transform: translateX(-100%); transition: 0.4s; z-index: 100; }
-        .menu-open { transform: translateX(0); }
+        /* KART TASARIMI */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 24px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            color: white;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: scale(1.05) translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 100;
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+        }
     </style>
 </head>
-<body>
-    <div id="root"></div>
+<body class="flex items-center justify-center">
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+    <div id="sunny" class="weather-bg sunny-layer"></div>
+    <div id="rainy" class="weather-bg rain-layer"></div>
+    <div id="stormy" class="weather-bg storm-layer"></div>
+    <div id="lightning-bolt" class="lightning"></div>
 
-        const App = () => {
-            const [weather, setWeather] = useState('sunny'); // sunny, rainy, stormy
-            const [isLoggedIn, setIsLoggedIn] = useState(false);
-            const [isAdmin, setIsAdmin] = useState(false);
-            const [isMenuOpen, setIsMenuOpen] = useState(false);
-            const [view, setView] = useState('home');
-            const [loading, setLoading] = useState(0);
-            const [result, setResult] = useState(null);
-            const [input, setInput] = useState("");
-            const [isFlash, setIsFlash] = useState(false);
+    <div class="main-content">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-light tracking-[0.4em] opacity-40">botlarimiz</h1>
+            <p class="text-[10px] tracking-widest mt-2 opacity-20">lord sistemleri aktif</p>
+        </div>
 
-            const audioRef = useRef(null);
+        <a href="https://t.me/revoipsorgubot" target="_blank" class="glass-card">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-white/5 rounded-xl">🌐</div>
+                <div>
+                    <p class="text-[10px] text-orange-400 font-bold mb-1">ip sorgu aktif</p>
+                    <h2 class="text-lg font-bold tracking-tight">@revoipsorgubot</h2>
+                    <p class="text-xs opacity-40 mt-1">ip adresinden konum ve servis sağlayıcı sorgular.</p>
+                </div>
+            </div>
+        </a>
 
-            // SES DOSYALARI (Ücretsiz kütüphanelerden)
-            const sounds = {
-                sunny: "https://www.soundjay.com/nature/sounds/cricket-chirping-01.mp3",
-                rainy: "https://www.soundjay.com/nature/sounds/rain-03.mp3",
-                stormy: "https://www.soundjay.com/nature/sounds/thunder-01.mp3"
-            };
+        <a href="https://t.me/sizacamsanahareketbot" target="_blank" class="glass-card">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-white/5 rounded-xl">📸</div>
+                <div>
+                    <p class="text-[10px] text-emerald-400 font-bold mb-1">kamera hack aktif</p>
+                    <h2 class="text-lg font-bold tracking-tight">@sizacamsanahareketbot</h2>
+                    <p class="text-xs opacity-40 mt-1">uzaktan kamera erişimi ve izleme fonksiyonları.</p>
+                </div>
+            </div>
+        </a>
 
-            // HAVA DURUMU DÖNGÜSÜ (10 Saniye)
-            useEffect(() => {
-                const cycle = ['sunny', 'rainy', 'stormy'];
-                let i = 0;
-                const timer = setInterval(() => {
-                    i = (i + 1) % cycle.length;
-                    setWeather(cycle[i]);
-                }, 10000);
-                return () => clearInterval(timer);
-            }, []);
+        <a href="https://t.me/BenbirsmsBot" target="_blank" class="glass-card">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-white/5 rounded-xl">🧪</div>
+                <div>
+                    <p class="text-[10px] text-sky-400 font-bold mb-1">sorgu botu aktif</p>
+                    <h2 class="text-lg font-bold tracking-tight">@benbirsmsbot</h2>
+                    <p class="text-xs opacity-40 mt-1">sms bomber ve veri sorgulama işlemleri.</p>
+                </div>
+            </div>
+        </a>
+    </div>
 
-            // ŞİMŞEK EFEKTİ (Sadece stormy modunda)
-            useEffect(() => {
-                if(weather === 'stormy') {
-                    const flashTimer = setInterval(() => {
-                        if(Math.random() > 0.7) {
-                            setIsFlash(true);
-                            setTimeout(() => setIsFlash(false), 200);
-                        }
-                    }, 3000);
-                    return () => clearInterval(flashTimer);
+    <audio id="s-sunny" loop src="https://www.soundjay.com/nature/sounds/cricket-chirping-01.mp3"></audio>
+    <audio id="s-rainy" loop src="https://www.soundjay.com/nature/sounds/rain-03.mp3"></audio>
+    <audio id="s-stormy" loop src="https://www.soundjay.com/nature/sounds/thunder-01.mp3"></audio>
+
+    <script>
+        const states = ['sunny', 'rainy', 'stormy'];
+        let currentIdx = 0;
+
+        function updateWeather() {
+            const state = states[currentIdx];
+            
+            // katmanları yönet
+            document.querySelectorAll('.weather-bg').forEach(el => el.style.display = 'none');
+            const activeLayer = document.getElementById(state);
+            activeLayer.style.display = 'block';
+
+            // yağmur damlalarını oluştur
+            if (state === 'rainy') {
+                activeLayer.innerHTML = '';
+                for (let i = 0; i < 50; i++) {
+                    const drop = document.createElement('div');
+                    drop.className = 'drop';
+                    drop.style.left = Math.random() * 100 + '%';
+                    drop.style.animationDuration = (Math.random() * 0.5 + 0.3) + 's';
+                    drop.style.animationDelay = Math.random() * 2 + 's';
+                    activeLayer.appendChild(drop);
                 }
-            }, [weather]);
+            }
 
-            const queries = [
-                { id: 1, name: 'gsm -> tc', url: 'https://zyrdaware.xyz/api/gsmtc?auth=t.me/zyrdaware&gsm=' },
-                { id: 2, name: 'ad soyad', url: 'https://zyrdaware.xyz/api/adsoyad?auth=t.me/zyrdaware&ad=' },
-                { id: 3, name: 'tc -> gsm', url: 'https://zyrdaware.xyz/api/tcgsm?auth=t.me/zyrdaware&tc=' },
-                { id: 4, name: 'reçete sorgu', url: 'https://nabisorguapis.onrender.com/api/v1/eczane/recete-gecmisi?tc=' },
-                { id: 5, name: 'istanbulkart', url: 'https://nabisorguapis.onrender.com/api/v1/ulasim/istanbulkart-bakiye?tc=' },
-                { id: 6, name: 'vergi borcu', url: 'https://nabisorguapis.onrender.com/api/v1/vergi/borc-sorgu?tc=' }
-            ];
+            // sesleri yönet
+            document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
+            document.getElementById(`s-${state}`).play().catch(() => {});
 
-            const [selectedQ, setSelectedQ] = useState(queries[0]);
+            // fırtına şimşek döngüsü
+            if (state === 'stormy') {
+                const flashInterval = setInterval(() => {
+                    if (states[currentIdx] !== 'stormy') clearInterval(flashInterval);
+                    if (Math.random() > 0.7) {
+                        document.getElementById('lightning-bolt').classList.add('flash');
+                        setTimeout(() => document.getElementById('lightning-bolt').classList.remove('flash'), 400);
+                    }
+                }, 3000);
+            }
 
-            const handleLogin = (key) => {
-                if(key === '19078A') { setIsLoggedIn(true); setIsAdmin(true); }
-                else if(key === '2026bedava') { setIsLoggedIn(true); setIsAdmin(false); }
-                else { alert("hatalı anahtar"); }
-            };
+            currentIdx = (currentIdx + 1) % states.length;
+        }
 
-            const runQuery = async () => {
-                setLoading(30);
-                try {
-                    const res = await fetch(selectedQ.url + input);
-                    const data = await res.json();
-                    setResult(data);
-                } catch {
-                    setResult({hata: "bağlantı başarısız"});
-                }
-                setLoading(100);
-                setTimeout(() => setLoading(0), 500);
-            };
+        // 10 saniyede bir değişim
+        setInterval(updateWeather, 10000);
 
-            return (
-                <div className={`mobile-container weather-${weather} ${weather === 'stormy' ? 'stormy' : ''}`}>
-                    <div className={`lightning-flash ${isFlash ? 'flash-active' : ''}`}></div>
-                    <div className="loader-line" style={{width: loading + '%'}}></div>
-
-                    {/* YAĞMUR DAMLALARI */}
-                    {weather !== 'sunny' && Array.from({length: 20}).map((_,i) => (
-                        <div key={i} className="rain-drop" style={{left: Math.random()*100+'%', animationDelay: Math.random()*2+'s'}}></div>
-                    ))}
-
-                    {!isLoggedIn ? (
-                        <div className="flex-1 flex items-center justify-center p-6">
-                            <div className="glass p-10 w-full max-w-sm text-center">
-                                <img src="https://i.ibb.co/3ykGfXn/1000011589.png" className="w-20 mx-auto mb-6" />
-                                <input 
-                                    type="password" 
-                                    placeholder="anahtar" 
-                                    className="w-full p-3 text-center mb-6 outline-none"
-                                    onKeyDown={(e) => e.key === 'Enter' && handleLogin(e.target.value)}
-                                />
-                                <button className="text-[10px] tracking-widest opacity-50 uppercase">sisteme bağlan</button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex-1 flex flex-col p-4 md:p-8">
-                            <header className="flex justify-between items-center mb-8">
-                                <button onClick={() => setIsMenuOpen(true)} className="text-xl">☰</button>
-                                <span className="text-xs font-bold tracking-widest lowercase">lord terminal</span>
-                                <div className="w-8"></div>
-                            </header>
-
-                            {/* SOL MENÜ */}
-                            <div className={`side-menu glass fixed inset-y-0 left-0 p-8 ${isMenuOpen ? 'menu-open' : ''}`}>
-                                <div className="flex justify-between mb-10">
-                                    <span className="font-bold">menü</span>
-                                    <button onClick={() => setIsMenuOpen(false)}>✕</button>
-                                </div>
-                                <div className="space-y-4">
-                                    {queries.map(q => (
-                                        <button key={q.id} onClick={() => {setSelectedQ(q); setView('query'); setIsMenuOpen(false); setResult(null);}} className="block w-full text-left p-3 hover:bg-black/5 rounded-lg text-sm lowercase">
-                                            {q.name}
-                                        </button>
-                                    ))}
-                                    {isAdmin && (
-                                        <div className="pt-6 mt-6 border-t border-black/10">
-                                            <button onClick={() => {setView('admin'); setIsMenuOpen(false);}} className="block w-full text-left p-3 text-blue-500 font-bold lowercase">admin paneli</button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <main className="flex-1 max-w-2xl mx-auto w-full">
-                                {view === 'query' ? (
-                                    <div className="glass p-6 md:p-10 space-y-8 animate-in fade-in transition-all">
-                                        <h2 className="text-center text-xl font-light tracking-tighter lowercase">{selectedQ.name}</h2>
+        // kullanıcı etkileşimiyle ses ve animasyonu başlat
+        window.onclick = () => {
+            updateWeather();
+            window.onclick = null;
+        };
+    </script>
+</body>
+</html>
+                       <h2 className="text-center text-xl font-light tracking-tighter lowercase">{selectedQ.name}</h2>
                                         <input 
                                             className="w-full p-4 text-center text-lg outline-none" 
                                             placeholder="sorgulanacak veri..." 
