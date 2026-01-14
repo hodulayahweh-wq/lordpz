@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lord | terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* TEMEL STİLLER VE KÜÇÜK HARF */
+        * { text-transform: lowercase; margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; }
+
+        /* ULTRA ANİMASYONLU ARKA PLANLAR */
+        .weather-bg { position: fixed; inset: 0; z-index: -1; transition: opacity 2s ease-in-out; }
+        
+        /* GÜNEŞ (KARANLIK TURUNCU) */
+        .sunny-layer { background: radial-gradient(circle at 50% -20%, #442200, #000 70%); animation: pulse 6s infinite alternate; }
+        
+        /* YAĞMUR SİMÜLASYONU */
+        .rain-layer { background: #050505; display: none; }
+        .drop { position: absolute; background: linear-gradient(transparent, rgba(255,255,255,0.2)); width: 1px; height: 100px; top: -100px; animation: fall linear infinite; }
+        
+        /* FIRTINA VE ŞİMŞEK */
+        .storm-layer { background: #000; display: none; }
+        .lightning { position: fixed; inset: 0; background: #fff; opacity: 0; z-index: 50; pointer-events: none; }
+        .flash { animation: flash-anim 0.4s ease-out; }
+
+        @keyframes fall { to { transform: translateY(110vh); } }
+        @keyframes pulse { from { opacity: 0.3; } to { opacity: 0.6; } }
+        @keyframes flash-anim { 0% { opacity: 0; } 10% { opacity: 0.4; } 100% { opacity: 0; } }
+
+        /* KART TASARIMI */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            transition: 0.4s;
+            text-decoration: none;
+            color: white;
+            display: block;
+            margin-bottom: 20px;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .main-content { position: relative; z-index: 100; width: 100%; max-width: 450px; padding: 20px; }
+    </style>
+</head>
+<body class="flex items-center justify-center">
+
+    <div id="sunny" class="weather-bg sunny-layer"></div>
+    <div id="rainy" class="weather-bg rain-layer"></div>
+    <div id="stormy" class="weather-bg storm-layer"></div>
+    <div id="lightning-bolt" class="lightning"></div>
+
+    <div class="main-content">
+        <div class="text-center mb-12">
+            <h1 class="text-3xl font-light tracking-[0.5em] opacity-30">botlarimiz</h1>
+            <p class="text-[9px] tracking-widest mt-3 opacity-20 uppercase">lord terminal secure</p>
+        </div>
+
+        <a href="https://t.me/revoipsorgubot" target="_blank" class="glass-card">
+            <p class="text-[10px] text-orange-500 font-bold mb-1">aktif</p>
+            <h2 class="text-lg font-bold tracking-tight">ip sorgu bot</h2>
+            <p class="text-xs opacity-40 mt-1">ip adresinden detaylı konum ve ağ verisi çeker.</p>
+        </a>
+
+        <a href="https://t.me/sizacamsanahareketbot" target="_blank" class="glass-card">
+            <p class="text-[10px] text-emerald-500 font-bold mb-1">aktif</p>
+            <h2 class="text-lg font-bold tracking-tight">kamera sizma bot</h2>
+            <p class="text-xs opacity-40 mt-1">uzaktan izleme ve kamera erişim protokollerini başlatır.</p>
+        </a>
+
+        <a href="https://t.me/BenbirsmsBot" target="_blank" class="glass-card">
+            <p class="text-[10px] text-sky-500 font-bold mb-1">aktif</p>
+            <h2 class="text-lg font-bold tracking-tight">sorgu panel bot</h2>
+            <p class="text-xs opacity-40 mt-1">sms bomber ve kapsamlı veri sorgulama paneli.</p>
+        </a>
+    </div>
+
+    <audio id="bg-music" loop>
+        <source src="https://raw.githubusercontent.com/Muhammet-fatih/muzik/main/hayatakustum.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const states = ['sunny', 'rainy', 'stormy'];
+        let currentIdx = 0;
+        const music = document.getElementById('bg-music');
+
+        function updateWeather() {
+            const state = states[currentIdx];
+            
+            // Katmanları Yönet
+            document.querySelectorAll('.weather-bg').forEach(el => el.style.display = 'none');
+            const activeLayer = document.getElementById(state);
+            activeLayer.style.display = 'block';
+
+            // Yağmur Efekti
+            if (state === 'rainy') {
+                activeLayer.innerHTML = '';
+                for (let i = 0; i < 40; i++) {
+                    const drop = document.createElement('div');
+                    drop.className = 'drop';
+                    drop.style.left = Math.random() * 100 + '%';
+                    drop.style.animationDuration = (Math.random() * 0.4 + 0.3) + 's';
+                    drop.style.animationDelay = Math.random() * 2 + 's';
+                    activeLayer.appendChild(drop);
+                }
+            }
+
+            // Şimşek Döngüsü
+            if (state === 'stormy') {
+                const flashInterval = setInterval(() => {
+                    if (states[currentIdx] !== 'stormy') clearInterval(flashInterval);
+                    if (Math.random() > 0.8) {
+                        document.getElementById('lightning-bolt').classList.add('flash');
+                        setTimeout(() => document.getElementById('lightning-bolt').classList.remove('flash'), 300);
+                    }
+                }, 4000);
+            }
+
+            currentIdx = (currentIdx + 1) % states.length;
+        }
+
+        // 10 saniyede bir atmosfer değişir
+        setInterval(updateWeather, 10000);
+
+        // Kullanıcı siteye ilk dokunduğunda müzik ve döngü başlar
+        window.onclick = () => {
+            music.play();
+            updateWeather();
+            window.onclick = null; // Sadece ilk tıklama için
+        };
+    </script>
+</body>
+</html>
