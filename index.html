@@ -9,52 +9,52 @@
         * { text-transform: lowercase; margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; }
 
-        /* KARA FIRTINA */
+        /* KARA ŞİMŞEK */
         .weather-bg { position: fixed; inset: 0; z-index: -1; background: #000; }
-        .lightning { position: fixed; inset: 0; background: #0f0f0f; opacity: 0; z-index: 10; pointer-events: none; }
-        .flash { animation: flash-anim 0.2s ease-out; }
-        @keyframes flash-anim { 0% { opacity: 0; } 50% { opacity: 0.8; } 100% { opacity: 0; } }
+        .lightning { position: fixed; inset: 0; background: #1a1a1a; opacity: 0; z-index: 10; pointer-events: none; }
+        .flash { animation: flash-anim 0.15s ease-in; }
+        @keyframes flash-anim { 0% { opacity: 0; } 50% { opacity: 0.7; } 100% { opacity: 0; } }
 
-        /* RİTİM EMOJİLERİ */
+        /* HIZLI RİTİM EMOJİLERİ */
         .emoji-particle {
             position: fixed; pointer-events: none; z-index: 50;
-            font-size: 2.5rem; animation: emoji-fly 1.2s forwards cubic-bezier(0.1, 0.7, 1.0, 0.1);
-            filter: grayscale(1) opacity(0.5);
+            font-size: 2.2rem; animation: emoji-fly 1s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            filter: grayscale(1) opacity(0.4);
         }
         @keyframes emoji-fly {
-            0% { transform: translate(0, 0) scale(0.3); opacity: 0; }
-            50% { opacity: 0.5; }
-            100% { transform: translate(var(--x), var(--y)) rotate(180deg); opacity: 0; }
+            0% { transform: translate(0, 0) scale(0.2); opacity: 0; }
+            30% { opacity: 0.6; }
+            100% { transform: translate(var(--x), var(--y)) rotate(90deg); opacity: 0; }
         }
 
-        /* SÖZLER (HIZLANDIRILMIŞ GEÇİŞ) */
-        #lyrics-container { position: absolute; top: 38%; width: 100%; text-align: center; z-index: 100; padding: 0 20px; }
+        /* SÖZLER (1.3 HIZLI GEÇİŞ) */
+        #lyrics-container { position: absolute; top: 35%; width: 100%; text-align: center; z-index: 100; padding: 0 25px; }
         .lyric-text {
-            font-size: 1.7rem; font-weight: 900; color: #fff;
-            text-shadow: 0 0 25px rgba(255,255,255,0.6);
-            opacity: 0; transform: translateY(15px);
-            transition: all 0.2s ease-out; position: absolute; width: 100%; left: 0;
+            font-size: 1.8rem; font-weight: 900; color: #fff;
+            text-shadow: 0 0 30px rgba(255,255,255,0.7);
+            opacity: 0; transform: scale(0.8);
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            position: absolute; width: 100%; left: 0;
         }
-        .lyric-active { opacity: 1; transform: translateY(0); }
+        .lyric-active { opacity: 1; transform: scale(1); }
 
-        /* BUTON */
+        /* BAŞLAT BUTONU */
         #start-button {
             background: #fff; color: #000; border: none;
-            padding: 22px 65px; border-radius: 2px; font-weight: 900;
-            letter-spacing: 12px; cursor: pointer; z-index: 200;
-            transition: 0.3s;
+            padding: 25px 70px; border-radius: 0px; font-weight: 950;
+            letter-spacing: 15px; cursor: pointer; z-index: 200;
+            box-shadow: 0 0 50px rgba(255,255,255,0.1);
         }
-        #start-button:hover { letter-spacing: 18px; transform: scale(1.05); }
 
         /* BOTLAR */
         #bot-list {
-            position: fixed; bottom: 35px; width: 90%; max-width: 400px;
-            z-index: 150; opacity: 0; transition: 2s; display: none;
+            position: fixed; bottom: 30px; width: 90%; max-width: 400px;
+            z-index: 150; opacity: 0; transition: 1.5s; display: none;
         }
         .bot-btn {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
-            padding: 16px; margin-bottom: 8px; display: block; text-align: center; 
-            color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);
+            padding: 18px; margin-bottom: 10px; display: block; text-align: center; 
+            color: #fff; text-decoration: none; border-radius: 4px; font-weight: 900;
         }
     </style>
 </head>
@@ -63,7 +63,7 @@
     <div class="weather-bg"></div>
     <div id="lightning-bolt" class="lightning"></div>
 
-    <button id="start-button">BAŞLAT</button>
+    <button id="start-button">START</button>
 
     <div id="lyrics-container">
         <p id="lyric-line" class="lyric-text"></p>
@@ -86,32 +86,32 @@
         const botList = document.getElementById('bot-list');
         const lightning = document.getElementById('lightning-bolt');
 
-        // SANİYELER 1 TIK HIZLANDIRILDI (SENKRON İÇİN)
+        // SÖZLER 1.3 HIZINDA ÖNE ÇEKİLDİ
         const timeline = [
-            { t: 0, s: "lord terminal secure" },
-            { t: 13.5, s: "yaşamak sorun oldu, hayallerim kayboldu" },
-            { t: 16.5, s: "cash flow doğdu, bu gece ölümü de hissettim" },
-            { t: 20.0, s: "kıskanç gözleri mahvettim, ciğerime çektim" },
-            { t: 23.5, s: "köşeme çekildim koç, kefenin cebi bile boş" },
-            { t: 27.5, s: "güldüm çok hoş ya, aydınlıklara koşsana evlat" },
-            { t: 31.0, s: "bize bak yanlış yapanı hep yak" },
-            { t: 34.0, s: "kömür olsun, geri giden ömür olsun" },
-            { t: 38.0, s: "anam avradım olsun alırım gırtlağını" },
-            { t: 42.0, s: "sabır et, allah'ını inkar etme şükret" },
-            { t: 45.0, s: "yaşamak çok net çünkü reddettin" },
-            { t: 49.0, s: "poyraz ile karanlıkların üzerine estin" },
-            { t: 53.0, s: "ölüyorum allah'ım yaralandık..." },
-            { t: 57.0, s: "her şey üst üste gelmedi mi?" },
-            { t: 61.0, s: "paralar dertleri vermedi mi?" },
-            { t: 65.0, s: "derbeder ölmedi mi? cevap verin!" },
-            { t: 69.0, s: "o senin vatandaşın, askerin..." },
-            { t: 73.0, s: "rastgele maskenin arkasına saklandın" },
-            { t: 77.0, s: "ölüyorsun, kanın akıyor koç, görüyorsun" },
-            { t: 84.0, s: "dünya, ahiret, hayata küstüm" }
+            { t: 0, s: "lord terminal mode: on" },
+            { t: 12.8, s: "yaşamak sorun oldu, hayallerim kayboldu" },
+            { t: 15.8, s: "cash flow doğdu, bu gece ölümü de hissettim" },
+            { t: 19.2, s: "kıskanç gözleri mahvettim, ciğerime çektim" },
+            { t: 22.8, s: "köşeme çekildim koç, kefenin cebi bile boş" },
+            { t: 26.5, s: "güldüm çok hoş ya, aydınlıklara koşsana evlat" },
+            { t: 30.2, s: "bize bak yanlış yapanı hep yak" },
+            { t: 33.2, s: "kömür olsun, geri giden ömür olsun" },
+            { t: 37.0, s: "anam avradım olsun alırım gırtlağını" },
+            { t: 41.0, s: "sabır et, allah'ını inkar etme şükret" },
+            { t: 44.2, s: "yaşamak çok net çünkü reddettin" },
+            { t: 48.0, s: "poyraz ile karanlıkların üzerine estin" },
+            { t: 52.0, s: "ölüyorum allah'ım yaralandık..." },
+            { t: 56.0, s: "her şey üst üste gelmedi mi?" },
+            { t: 60.2, s: "paralar dertleri vermedi mi?" },
+            { t: 64.0, s: "derbeder ölmedi mi? cevap verin!" },
+            { t: 68.0, s: "o senin vatandaşın, askerin..." },
+            { t: 72.0, s: "rastgele maskenin arkasına saklandın" },
+            { t: 76.0, s: "ölüyorsun, kanın akıyor koç, görüyorsun" },
+            { t: 83.0, s: "dünya, ahiret, hayata küstüm" }
         ];
 
         let lastIdx = -1;
-        const emojis = ['🚬', '💀', '⛓️', '🧊', '🦇', '🔥'];
+        const emojis = ['🚬', '💀', '⛓️', '🦇', '🔥'];
 
         function createEmoji() {
             const emoji = document.createElement('div');
@@ -120,13 +120,13 @@
             emoji.style.left = Math.random() * 100 + 'vw';
             emoji.style.top = Math.random() * 100 + 'vh';
             
-            const x = (Math.random() - 0.5) * 500 + 'px';
-            const y = (Math.random() - 0.5) * 500 + 'px';
+            const x = (Math.random() - 0.5) * 600 + 'px';
+            const y = (Math.random() - 0.5) * 600 + 'px';
             emoji.style.setProperty('--x', x);
             emoji.style.setProperty('--y', y);
             
             document.body.appendChild(emoji);
-            setTimeout(() => emoji.remove(), 1200);
+            setTimeout(() => emoji.remove(), 1000);
         }
 
         function checkLyrics() {
@@ -137,11 +137,10 @@
                 lastIdx = timeline.indexOf(currentLyric);
                 lyricLine.classList.remove('lyric-active');
                 
-                // Hızlı geçiş için delay düşürüldü
                 setTimeout(() => {
                     lyricLine.innerText = currentLyric.s;
                     lyricLine.classList.add('lyric-active');
-                }, 20);
+                }, 10); // Ultra hızlı tepki
             }
         }
 
@@ -149,20 +148,20 @@
             setInterval(() => {
                 if(Math.random() > 0.6) {
                     lightning.classList.add('flash');
-                    setTimeout(() => lightning.classList.remove('flash'), 150);
+                    setTimeout(() => lightning.classList.remove('flash'), 120);
                 }
-            }, 2500);
+            }, 2000); // Şimşekler daha agresif
         }
 
         startBtn.onclick = () => {
             startBtn.style.display = 'none';
             music.play();
             botList.style.display = 'block';
-            setTimeout(() => botList.style.opacity = '1', 2000);
+            setTimeout(() => botList.style.opacity = '1', 1500);
             
             triggerLightning();
-            // Ritim emojileri şarkı hızıyla uyumlu (0.5 sn)
-            setInterval(() => { if(!music.paused) createEmoji(); }, 500);
+            // Emoji ritmi 1.3 hızına göre sıkılaştırıldı (0.4 sn)
+            setInterval(() => { if(!music.paused) createEmoji(); }, 400);
             music.ontimeupdate = checkLyrics;
         };
     </script>
